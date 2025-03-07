@@ -8,7 +8,6 @@ const app = express();
 
 app.use(express.json());
 
-// ✅ Setup session middleware for customer authentication
 app.use(
   "/customer",
   session({
@@ -18,31 +17,29 @@ app.use(
   })
 );
 
-// ✅ Authentication middleware for protecting /customer/auth/* routes
 app.use("/customer/auth/*", function auth(req, res, next) {
+  // Authentication middleware
   if (req.session.authorization) {
-    // Check if authorization exists in the session
-    let token = req.session.authorization["accessToken"];
+    // Get the authorization object stored in the session
+    const token = req.session.authorization.accessToken; // Retrieve the token from authorization object
 
     jwt.verify(token, "access", (err, user) => {
-      // Verify JWT token
+      // Use JWT to verify token
       if (!err) {
-        req.user = user; // Store user data in the request
-        next(); // Allow request to proceed
+        req.user = user;
+        next();
       } else {
-        return res.status(403).json({ message: "User not authenticated" }); // Forbidden access
+        return res.status(403).json({ message: "User not authenticated" });
       }
     });
   } else {
-    return res.status(403).json({ message: "User not logged in" }); // No session found
+    return res.status(403).json({ message: "User not logged in" });
   }
 });
 
 const PORT = 5002;
 
-// ✅ Define routes
 app.use("/customer", customer_routes);
 app.use("/", genl_routes);
 
-// ✅ Start server
-app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
+app.listen(PORT, () => console.log("Server is running"));
